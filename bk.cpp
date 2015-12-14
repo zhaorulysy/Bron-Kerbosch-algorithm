@@ -5,7 +5,7 @@ using namespace std;
 
 int init_data[SET_NUM][SET_NUM];
 
-const int set_num = 7;
+const int set_num = 5;
 struct sets_info
 {
 	int size;
@@ -170,7 +170,7 @@ struct sets_info * two_sets_union(struct sets_info *first,struct sets_info *seco
 	tmp->size = tmp_mun;
 	return tmp;
 }
-
+//两个集合相交
 struct sets_info * two_sets_intersection(struct sets_info *first,struct sets_info *second)
 {
 	struct sets_info * tmp = (sets_info *)malloc(sizeof(sets_info));
@@ -206,13 +206,118 @@ void print_arr(int *print_arr,int arr_len)
 	}
 	cout<<endl<<"end print_arr"<<endl;
 } 
+void insert_setsele (int *sets_ele,int sets_len)
+{
+
+	int i,j;
+	bool is_has_repeat = false;
+	
+	if (!is_has_repeat)
+	{
+		sets_arr[all_sets_index].size = sets_len;
+		for(i = 0;i<sets_len;i++)
+		{
+			sets_arr[all_sets_index].sets_ele[i] = sets_ele[i];
+		}
+		
+		all_sets_index++;
+
+	}
+}
+
+//处理新加的一个对象
+bool include_arr (int *big_arr,int *small_arr,int big_len,int small_len) 
+{
+	int i=0,j=0;
+	while(i < big_len && j < small_len)
+	{
+		if(big_arr[i] == small_arr[j])
+		{
+			i++;j++;
+			if (j >= small_len)
+				return true;	
+		}	
+		else
+		{
+			i++;		
+		} 	
+	}	
+	return false;
+}
+int add_or_replace_array(int *saved_arr,int *add_arr,int saved_len,int add_len)
+{
+	if(saved_len >= add_len)
+	{
+		if(include_arr(saved_arr,add_arr,saved_len,add_len))
+		{
+			return 1;//  no need add
+		}
+		else 
+		{
+			return 2; //need add
+		}
+	}
+	else 
+	{
+		if(include_arr(add_arr,saved_arr,add_len,saved_len))
+		{
+			return 3;//  need replace
+		}
+		else 
+		{
+			return 2; //need add
+		}	
+	}
+}
+void insert_setsele_for_new_ele (int *sets_ele,int sets_len,int start_check_index)
+{
+
+	int i,j;
+	bool is_has_repeat = false;
+	for(i = start_check_index;i < all_sets_index;i++)
+	{
+		int res = add_or_replace_array(sets_arr[i].sets_ele,sets_ele,sets_arr[i].size,sets_len);
+		if(res == 1)
+			return;
+		else if(res == 3)
+		{
+			if (!is_has_repeat)
+			{
+				sets_arr[i].size = sets_len;
+				for(j = 0;j<sets_len;j++)
+				{
+					sets_arr[i].sets_ele[j] = sets_ele[j];
+				}
+				is_has_repeat = true;
+			}
+			else
+			{
+				sets_arr[i].size = 0;
+				
+			}
+			//break;
+		}	
+	}
+	if (!is_has_repeat)
+	{
+		sets_arr[all_sets_index].size = sets_len;
+		for(i = 0;i<sets_len;i++)
+		{
+			sets_arr[all_sets_index].sets_ele[i] = sets_ele[i];
+		}
+		
+		all_sets_index++;
+
+	}
+}
 
 void Bron_Kerbosch(struct sets_info * r,struct sets_info * p,struct sets_info * x)
 {
 	if(p->size == 0 && x->size == 0)
 	{
-		cout<< "&&&&"<<r->size<<endl;
-		print_arr(r->sets_ele,r->size);
+		//cout<< "&&&&"<<r->size<<endl;
+		//print_arr(r->sets_ele,r->size);
+		insert_setsele(r->sets_ele,r->size);
 		return;
 	}
 	struct sets_info * tmp = two_sets_union(p,x);
@@ -239,24 +344,7 @@ void Bron_Kerbosch(struct sets_info * r,struct sets_info * p,struct sets_info * 
 	}
 	free(tmp2);tmp2 = NULL;
 }
-void insert_setsele (int *sets_ele,int sets_len)
-{
 
-	int i,j;
-	bool is_has_repeat = false;
-	
-	if (!is_has_repeat)
-	{
-		sets_arr[all_sets_index].size = sets_len;
-		for(i = 0;i<sets_len;i++)
-		{
-			sets_arr[all_sets_index].sets_ele[i] = sets_ele[i];
-		}
-		
-		all_sets_index++;
-
-	}
-}
 
 
 int main()
@@ -283,7 +371,7 @@ int main()
 //	for(i = 0;i<set_num;i++)
 //		print_arr(connect_eles[i].sets_ele,connect_eles[i].size);
 	
-	cout<<"----------main:"<<k<<endl;
+	
 	struct sets_info R,P,X;
 	int h ;
 	for (h = 0;h < set_num;h++)
@@ -294,16 +382,59 @@ int main()
 	R.size = 0;
 	X.size = 0;
 	Bron_Kerbosch(&R,&P,&X);
-//	for (i = 0;i<all_sets_index;i++)
-// 	{
-//		cout<<i<<"***"<<sets_arr[i].size<<endl;
-//		if (sets_arr[i].size == 0) continue;
-//		for(j = 0;j<sets_arr[i].size;j++)
-//		{
-//			cout<<sets_arr[i].sets_ele[j]<<" ";
-//		}
-//		cout<<endl;
-//	}
 	
+	for (i = 0;i<all_sets_index;i++)
+	{
+		cout<<i<<"***"<<sets_arr[i].size<<endl;
+		if (sets_arr[i].size == 0) continue;
+		for(j = 0;j<sets_arr[i].size;j++)
+		{
+			cout<<sets_arr[i].sets_ele[j]<<" ";
+		}
+		cout<<endl;
+	}
+	cout<<"-----------------------------------"<<endl;
+	int data_ = set_num;		//需要加的对象比如 1 2 3 4 5 6
+	//初始化这个对象关联的所有对象集合
+	struct sets_info *need_add_ele = (sets_info *)malloc(sizeof(sets_info));;
+	
+	cin>>num;
+	for(k = 0;k < num;k++)
+	{
+		cin>>need_add_ele->sets_ele[k];
+	}
+	need_add_ele->size = num;
+	int tmp_all_sets_index = all_sets_index;
+	for (i = 0;i<tmp_all_sets_index;i++)
+	{
+		if (sets_arr[i].size == 0) continue;
+		struct sets_info *tmp = two_sets_intersection(&sets_arr[i],need_add_ele);
+		if(tmp->size != 0)
+		{
+			if(tmp->size == sets_arr[i].size) //sets_arr[i]是tmp子集
+			{
+				sets_arr[i].sets_ele[sets_arr[i].size] = data_;
+				sets_arr[i].size++;
+			}
+			else
+			{
+				tmp->sets_ele[tmp->size] = data_;
+				tmp->size++;
+				insert_setsele_for_new_ele(tmp->sets_ele,tmp->size,tmp_all_sets_index);
+			}
+		}
+		free(tmp);tmp = NULL;
+	}
+	
+	for (i = 0;i<all_sets_index;i++)
+	{
+		cout<<i<<"***"<<sets_arr[i].size<<endl;
+		if (sets_arr[i].size == 0) continue;
+		for(j = 0;j<sets_arr[i].size;j++)
+		{
+			cout<<sets_arr[i].sets_ele[j]<<" ";
+		}
+		cout<<endl;
+	}
 	return 0;
 }//dellaserss
